@@ -1,0 +1,28 @@
+version: "3.3"
+
+services:
+  database:
+    container_name: Database
+    image: library/postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+  bot:
+    container_name: Backend
+    build: ./
+    depends_on:
+      - database
+    environment:
+      - PG_URL=host=database port=5432 user=admin password=admin dbname=postgres sslmode=disable
+  migrate:
+    container_name: Migrations
+    build: ./storage/migrate
+    depends_on:
+      - database
+    volumes:
+      - ./storage/migrate:/migrate:ro
+    environment:
+      - GOOSE_DRIVER=postgres
+      - GOOSE_DBSTRING=host=database port=5432 user=admin password=admin dbname=postgres sslmode=disable

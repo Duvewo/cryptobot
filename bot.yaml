@@ -1,0 +1,36 @@
+settings:
+  token: "932691138:AAFxoFv3yyjpX-zDZQbU2cKmoFrtrHdC-mc"
+
+config:
+  command_not_found: "Команда не найдена!"
+
+buttons:
+  followed: "⏰ Отслеживаемое"
+  latest_news: "🗞 Последние новости"
+  rating: "🔝 Рейтинг"
+  subscribe: "➕ Подписаться"
+  support: "📞 Поддержка"
+  cryptocurrency: "Криптовалюты"
+  stocks: "Акции"
+  cryptowallets: "Кошельки"
+  cryptoalerts: "Алерты"
+
+markups:
+  start:
+    - [ followed, subscribe ]
+    - [ rating, latest_news ]
+    - [ support ]
+  followed:
+    - [ followed ]
+    - [ cryptocurrency, stocks ]
+    - [ cryptowallets, cryptoalerts ]
+  subscribe:
+    - [ subscribe ]
+    - [ cryptocurrency, stocks ]
+    - [ cryptowallets, cryptoalerts ]
+  rating:
+    - [ rating ]
+    - [ cryptocurrency, stocks ]
+  latest_news:
+    - [ latest_news ]
+    - [ cryptocurrency, stocks ]
