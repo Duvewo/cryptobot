@@ -53,34 +53,44 @@ func main() {
 		CryptoCurrency: cc,
 	})
 
-	go func(client *cryptocurrency.Client) {
-		err = helpers.ForexInit(cc)
+	err = helpers.ForexInit(cc)
 
-		if err != nil {
-			log.Fatalf("failed to initialize Forex: %v", err)
-		}
+	if err != nil {
+		log.Fatalf("failed to initialize Forex: %v", err)
+	}
 
+	ch := make(chan cryptocurrency.Response, 92)
+
+	//response reader
+	go func(client *cryptocurrency.Client, ch chan cryptocurrency.Response) {
 		for {
-
 			var resp cryptocurrency.Response
-			err = client.ReadJSON(&resp)
+			err := client.ReadJSON(&resp)
 
 			if err != nil {
-				log.Fatalf("failed to read response: %v", err)
+				log.Printf("failed to read response: %v", err)
 			}
 
-			//TODO: get response to Message and save pairs to global map
+			ch <- resp
 
+		}
+	}(cc, ch)
+
+	//response handler
+	go func(ch chan cryptocurrency.Response) {
+		v, ok := <-ch
+
+		if !ok {
 			time.Sleep(time.Second * 10)
-
-			err = client.WriteJSON(cryptocurrency.Request{Event: "heartbeat", Data: "h"})
+			err := helpers.HeartBeat()
 
 			if err != nil {
-				log.Fatalf("failed to send heartbeat: %v", err)
+				log.Printf("failed to heartbeat: %v", err)
 			}
 
 		}
-	}(cc)
+
+	}(ch)
 
 	b.Use(lt.Middleware("ru"))
 
