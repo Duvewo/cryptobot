@@ -8,10 +8,14 @@ type Client struct {
 	conn *websocket.Conn
 }
 
-func (c Client) Write(data []byte) error {
-	return c.conn.WriteJSON(data)
+type Request struct {
+	Event   string `json:"_event"`
+	TzID    int    `json:"tzID,omitempty"`
+	Message string `json:"message,omitempty"`
+	Data    string `json:"data,omitempty"`
+	UID     int    `json:"UID,omitempty"`
 }
 
-func (c Client) Read(v *interface{}) error {
-	return c.conn.ReadJSON(&v)
+type Response struct {
+	Message string `json:"message"`
 }

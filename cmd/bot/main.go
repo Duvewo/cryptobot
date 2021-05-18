@@ -2,15 +2,17 @@ package main
 
 import (
 	"github.com/Duvewo/cryptobot/handlers"
+	"github.com/Duvewo/cryptobot/helpers"
 	"github.com/Duvewo/cryptobot/internal/cryptocurrency"
 	"github.com/Duvewo/cryptobot/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 	"gopkg.in/tucnak/telebot.v3/layout"
 	"log"
-	"net/url"
 	"os"
 	"time"
 )
+
+var CryptoCurrencyMap = make(map[string]float64, 10)
 
 func main() {
 	lt, err := layout.New("bot.yaml")
@@ -37,16 +39,11 @@ func main() {
 	}
 
 	//TODO: implement investing.com api
-	u, err := url.Parse("wss://stream224.forexpros.com/echo/820/5105ohnm/websocket")
+
+	cc, err := helpers.ForexDial()
 
 	if err != nil {
-		log.Fatalf("failed to parse URL: %v", err)
-	}
-
-	cc, err := cryptocurrency.Dial(u)
-
-	if err != nil {
-		log.Fatalf("failed to dial cryptocurrency: %v", err)
+		log.Fatalf("failed to dial Forex: %v", err)
 	}
 
 	h := handlers.New(handlers.Handler{
@@ -55,6 +52,35 @@ func main() {
 		Layout:         lt,
 		CryptoCurrency: cc,
 	})
+
+	go func(client *cryptocurrency.Client) {
+		err = helpers.ForexInit(cc)
+
+		if err != nil {
+			log.Fatalf("failed to initialize Forex: %v", err)
+		}
+
+		for {
+
+			var resp cryptocurrency.Response
+			err = client.ReadJSON(&resp)
+
+			if err != nil {
+				log.Fatalf("failed to read response: %v", err)
+			}
+
+			//TODO: get response to Message and save pairs to global map
+
+			time.Sleep(time.Second * 10)
+
+			err = client.WriteJSON(cryptocurrency.Request{Event: "heartbeat", Data: "h"})
+
+			if err != nil {
+				log.Fatalf("failed to send heartbeat: %v", err)
+			}
+
+		}
+	}(cc)
 
 	b.Use(lt.Middleware("ru"))
 
