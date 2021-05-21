@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/Duvewo/cryptobot/handlers"
 	"github.com/Duvewo/cryptobot/helpers"
-	"github.com/Duvewo/cryptobot/internal/cryptocurrency"
 	"github.com/Duvewo/cryptobot/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 	"gopkg.in/tucnak/telebot.v3/layout"
@@ -40,11 +39,7 @@ func main() {
 
 	//TODO: implement investing.com api
 
-	cc, err := helpers.ForexDial()
-
-	if err != nil {
-		log.Fatalf("failed to dial Forex: %v", err)
-	}
+	cc := helpers.Dial()
 
 	h := handlers.New(handlers.Handler{
 		Bot:            b,
@@ -59,38 +54,17 @@ func main() {
 		log.Fatalf("failed to initialize Forex: %v", err)
 	}
 
-	ch := make(chan cryptocurrency.Response, 92)
+	for {
 
-	//response reader
-	go func(client *cryptocurrency.Client, ch chan cryptocurrency.Response) {
-		for {
-			var resp cryptocurrency.Response
-			err := client.ReadJSON(&resp)
+		_, data, err := cc.Read()
 
-			if err != nil {
-				log.Printf("failed to read response: %v", err)
-			}
-
-			ch <- resp
-
-		}
-	}(cc, ch)
-
-	//response handler
-	go func(ch chan cryptocurrency.Response) {
-		v, ok := <-ch
-
-		if !ok {
-			time.Sleep(time.Second * 10)
-			err := helpers.HeartBeat()
-
-			if err != nil {
-				log.Printf("failed to heartbeat: %v", err)
-			}
-
+		if err != nil {
+			log.Printf("failed to read response: %v", err)
 		}
 
-	}(ch)
+		log.Printf("%#v", data)
+
+	}
 
 	b.Use(lt.Middleware("ru"))
 

@@ -17,10 +17,6 @@ func Dial(u *url.URL) (*Client, error) {
 
 }
 
-func (c *Client) Ping() error {
-	return c.Ping()
-}
-
 func (c Client) WriteJSON(data interface{}) error {
 	return c.conn.WriteJSON(data)
 }
